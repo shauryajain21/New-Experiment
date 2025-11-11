@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bayesian Belief Updating Experiment</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 1200px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            color: #555;
+            margin-bottom: 20px;
+        }
+
+        .instructions {
+            line-height: 1.8;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .instructions ul {
+            margin-left: 30px;
+            margin-top: 10px;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        button.red {
+            background-color: #dc3545;
+        }
+
+        button.red:hover {
+            background-color: #c82333;
+        }
+
+        button.blue {
+            background-color: #007bff;
+        }
+
+        button.blue:hover {
+            background-color: #0056b3;
+        }
+
+        .input-group {
+            margin: 20px 0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            max-width: 400px;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .center {
+            text-align: center;
+        }
+
+        /* Training specific styles */
+        .training-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .sample-display {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .ball {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 2px solid #333;
+            display: inline-block;
+        }
+
+        .ball.black {
+            background-color: #000;
+        }
+
+        .ball.white {
+            background-color: #fff;
+        }
+
+        .urn-display {
+            display: flex;
+            gap: 50px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .urn {
+            border: 3px solid #333;
+            padding: 20px;
+            border-radius: 10px;
+            background: #fafafa;
+            text-align: center;
+            min-width: 200px;
+        }
+
+        .urn.red-border {
+            border-color: #dc3545;
+        }
+
+        .urn.green-border {
+            border-color: #28a745;
+        }
+
+        .urn h3 {
+            margin-bottom: 15px;
+        }
+
+        .feedback {
+            font-size: 24px;
+            font-weight: bold;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+
+        .feedback.correct {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .feedback.incorrect {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        /* Main experiment styles */
+        .jar-banner {
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .jar-banner.red {
+            background-color: #ffebee;
+            border: 3px solid #dc3545;
+        }
+
+        .jar-banner.green {
+            background-color: #e8f5e9;
+            border: 3px solid #28a745;
+        }
+
+        .jar-banner h2 {
+            color: #333;
+            margin: 0;
+        }
+
+        .sample-history {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .stats {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+
+        .stats p {
+            margin: 5px 0;
+            color: #555;
+        }
+
+        .draw-section {
+            text-align: center;
+            padding: 40px;
+            background: #f0f8ff;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .draw-section button {
+            font-size: 20px;
+            padding: 15px 40px;
+        }
+
+        .estimate-section {
+            background: #fff9e6;
+            padding: 30px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .response-inputs {
+            display: grid;
+            gap: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .progress {
+            background: #e9ecef;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .consent-text {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+        }
+
+        .jar-visual {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .jar-icon {
+            font-size: 80px;
+            color: #999;
+        }
+
+        .last-response {
+            color: #888;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            .urn-display {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Participant ID Screen -->
+        <div id="participant-screen" class="screen active">
+            <h1>Bayesian Belief Updating Study</h1>
+            <div class="instructions center">
+                <p>Welcome! Thank you for participating in this research study.</p>
+            </div>
+            <div class="input-group center">
+                <label for="participant-id">Please enter your Participant ID:</label>
+                <input type="text" id="participant-id" placeholder="Enter ID" required>
+            </div>
+            <div class="center">
+                <button onclick="submitParticipantId()">Start</button>
+            </div>
+        </div>
+
+        <!-- Consent Screen -->
+        <div id="consent-screen" class="screen">
+            <h1>Informed Consent</h1>
+            <div class="consent-text">
+                <p><strong>Study Title:</strong> Bayesian Belief Updating Under Uncertainty</p>
+                <p><strong>Principal Investigator:</strong> Professor Bob Rehder, NYU Psychology Department</p>
+                <br>
+                <p><strong>Purpose:</strong></p>
+                <p>You are invited to participate in a research study investigating how people form judgments under conditions of uncertainty.</p>
+                <br>
+                <p><strong>Procedures:</strong></p>
+                <p>The study will take approximately 30 minutes. You will:</p>
+                <ul>
+                    <li>Complete a brief training phase</li>
+                    <li>Make probability estimates based on samples of balls drawn from urns</li>
+                    <li>Rate your confidence in your estimates</li>
+                </ul>
+                <br>
+                <p><strong>Compensation:</strong></p>
+                <p>You will be compensated for your time according to NYU Sona system rates.</p>
+                <br>
+                <p><strong>Confidentiality:</strong></p>
+                <p>All data will be kept confidential and anonymous. Your responses will be identified only by a participant ID number.</p>
+                <br>
+                <p><strong>Voluntary Participation:</strong></p>
+                <p>Your participation is voluntary. You may withdraw at any time without penalty.</p>
+                <br>
+                <p><strong>Consent:</strong></p>
+                <p>By clicking "I Agree" below, you confirm that you:</p>
+                <ul>
+                    <li>Are at least 18 years old</li>
+                    <li>Have read and understood this information</li>
+                    <li>Voluntarily agree to participate</li>
+                </ul>
+            </div>
+            <div class="button-group center">
+                <button onclick="giveConsent()">I Agree</button>
+                <button class="red" onclick="declineConsent()">Decline</button>
+            </div>
+        </div>
+
+        <!-- Training Instructions -->
+        <div id="training-instructions" class="screen">
+            <h1>Training Phase</h1>
+            <div class="instructions">
+                <p>Before we begin the main experiment, you'll complete a brief training to familiarize yourself with the task.</p>
+                <br>
+                <p><strong>What you'll do:</strong></p>
+                <ul>
+                    <li>You will see a sample of balls drawn from an urn</li>
+                    <li>Two candidate urns will be shown, each with a different proportion of black balls</li>
+                    <li>Your task is to identify which urn the sample came from</li>
+                    <li>You will receive immediate feedback on each trial</li>
+                </ul>
+                <br>
+                <p>This training will help you understand the relationship between samples and the urns they come from.</p>
+                <br>
+                <p>You will complete 10 practice trials.</p>
+            </div>
+            <div class="center">
+                <button onclick="startTraining()">Begin Training</button>
+            </div>
+        </div>
+
+        <!-- Training Trial -->
+        <div id="training-trial" class="screen">
+            <h1>Training Trial <span id="training-trial-num">1</span>/10</h1>
+            <div class="training-container">
+                <div>
+                    <h3>Sample drawn:</h3>
+                    <div id="training-sample" class="sample-display"></div>
+                </div>
+
+                <div>
+                    <h3>Which urn was the source?</h3>
+                    <div class="urn-display" id="training-urns"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Training Feedback -->
+        <div id="training-feedback" class="screen">
+            <div id="feedback-message" class="feedback"></div>
+            <div class="center">
+                <button onclick="nextTrainingTrial()">Continue</button>
+            </div>
+        </div>
+
+        <!-- Main Experiment Instructions -->
+        <div id="main-instructions" class="screen">
+            <h1>Main Experiment - RED JAR</h1>
+            <div class="instructions">
+                <p>Now the main experiment begins.</p>
+                <br>
+                <p>A jar (urn) has been randomly selected from all possible jars (0% to 100% black balls). You won't see what's inside.</p>
+                <br>
+                <p><strong>On each trial, you will:</strong></p>
+                <ol>
+                    <li>Click "Draw Ball" to draw one ball from the jar</li>
+                    <li>See the ball that was drawn (it is then replaced in the jar)</li>
+                    <li>Estimate the probability of drawing a black ball (0-100%)</li>
+                    <li>Rate your confidence in your estimate (0-10)</li>
+                    <li>Submit your response</li>
+                </ol>
+                <br>
+                <p><strong>Important:</strong></p>
+                <ul>
+                    <li>All previously drawn balls will remain visible</li>
+                    <li>Each ball is replaced after drawing (the jar's composition stays the same)</li>
+                    <li>You will complete 40 trials with this RED jar</li>
+                </ul>
+            </div>
+            <div class="center">
+                <button onclick="startMainExperiment()">Begin RED JAR</button>
+            </div>
+        </div>
+
+        <!-- Initial Estimate -->
+        <div id="initial-estimate" class="screen">
+            <div id="initial-jar-banner" class="jar-banner"></div>
+            <div class="instructions center">
+                <p>A jar has been randomly selected from all possible jars.</p>
+                <p><strong>What is your initial estimate of the probability of drawing a black ball?</strong></p>
+                <p>(Before seeing any samples)</p>
+            </div>
+            <div class="jar-visual">
+                <div class="jar-icon">🏺</div>
+                <p style="font-size: 40px; color: #999;">?</p>
+            </div>
+            <div class="response-inputs">
+                <div class="input-group">
+                    <label for="initial-estimate-input">Probability (0-100%):</label>
+                    <input type="number" id="initial-estimate-input" min="0" max="100" step="0.1">
+                </div>
+            </div>
+            <div class="center">
+                <button onclick="submitInitialEstimate()">Submit</button>
+            </div>
+        </div>
+
+        <!-- Main Trial -->
+        <div id="main-trial" class="screen">
+            <div id="jar-banner" class="jar-banner"></div>
+            <div class="progress">
+                Trial <span id="trial-num">1</span>/<span id="total-trials">40</span>
+            </div>
+
+            <div class="sample-history">
+                <strong>Sample History (<span id="sample-count">0</span> balls):</strong>
+                <div id="sample-display" class="sample-display" style="margin-top: 10px;"></div>
+            </div>
+
+            <div class="stats">
+                <p><strong>Black balls:</strong> <span id="black-count">0</span>/<span id="total-count">0</span> (<span id="black-percent">0</span>%)</p>
+            </div>
+
+            <!-- Draw Ball Section -->
+            <div id="draw-section" class="draw-section">
+                <h3>Press the button to draw a ball</h3>
+                <button onclick="drawBall()" class="blue">Draw Ball</button>
+            </div>
+
+            <!-- Estimate Section -->
+            <div id="estimate-section" class="estimate-section" style="display: none;">
+                <h3>Enter your estimate:</h3>
+                <div class="response-inputs">
+                    <div class="input-group">
+                        <label for="probability-estimate">Probability of drawing a black ball (0-100%):</label>
+                        <input type="number" id="probability-estimate" min="0" max="100" step="0.1">
+                    </div>
+                    <div class="input-group">
+                        <label for="confidence-rating">Confidence in your estimate (0-10):</label>
+                        <input type="number" id="confidence-rating" min="0" max="10" step="0.1">
+                    </div>
+                </div>
+                <div class="center">
+                    <button onclick="submitTrial()">Submit Response</button>
+                </div>
+                <div class="last-response">
+                    <p id="last-estimate"></p>
+                    <p id="last-confidence"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Green Jar Instructions -->
+        <div id="green-instructions" class="screen">
+            <h1>New Task - GREEN JAR</h1>
+            <div class="instructions">
+                <p>The RED jar is being set aside.</p>
+                <br>
+                <p>A <strong>NEW</strong> jar (GREEN jar) with a different unknown probability has been selected.</p>
+                <br>
+                <p>You will now begin the same estimation process with this new jar.</p>
+                <br>
+                <p>You will complete <strong>30 trials</strong> with the GREEN jar.</p>
+            </div>
+            <div class="center">
+                <button onclick="startGreenJar()">Begin GREEN JAR</button>
+            </div>
+        </div>
+
+        <!-- Return to Red Jar Instructions -->
+        <div id="return-red-instructions" class="screen">
+            <h1>Return to RED JAR</h1>
+            <div class="instructions">
+                <p>The GREEN jar is being set aside.</p>
+                <br>
+                <p>We are now <strong>returning to the original RED jar</strong>.</p>
+                <br>
+                <p>Continue your estimation process where you left off.</p>
+                <p>All your previous samples from the RED jar are still here.</p>
+                <br>
+                <p>You will complete <strong>30 more trials</strong> with the RED jar.</p>
+            </div>
+            <div class="center">
+                <button onclick="returnToRedJar()">Continue RED JAR</button>
+            </div>
+        </div>
+
+        <!-- Thank You Screen -->
+        <div id="thank-you" class="screen">
+            <h1>Thank You!</h1>
+            <div class="instructions center">
+                <p style="font-size: 24px; color: #28a745; margin-bottom: 20px;">✓ Experiment Complete</p>
+                <p>Thank you for participating in this study.</p>
+                <p>Your data has been saved successfully.</p>
+                <br>
+                <p>You may now close this window.</p>
+                <br>
+                <p style="font-size: 14px; color: #888;">If you have any questions about this research, please contact Professor Bob Rehder at NYU Psychology Department.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Experiment state
+        let state = {
+            participantId: null,
+            currentStage: null,
+            currentTrial: 0,
+            totalTrials: 0,
+            samples: [],
+            estimates: [],
+            confidences: [],
+            lastDrawnBall: null,
+            trainingTrial: 0,
+            trainingData: []
+        };
+
+        // Audio context for sounds
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(frequency, duration) {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.frequency.value = frequency;
+            oscillator.type = 'sine';
+
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        async function submitParticipantId() {
+            const id = document.getElementById('participant-id').value.trim();
+            if (!id) {
+                alert('Please enter a participant ID');
+                return;
+            }
+
+            state.participantId = id;
+
+            // Initialize experiment
+            const response = await fetch('/api/start_experiment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ participant_id: id })
+            });
+
+            if (response.ok) {
+                showScreen('consent-screen');
+            } else {
+                alert('Error starting experiment');
+            }
+        }
+
+        function giveConsent() {
+            showScreen('training-instructions');
+        }
+
+        function declineConsent() {
+            alert('Thank you for your time. You may close this window.');
+        }
+
+        function startTraining() {
+            state.trainingTrial = 1;
+            loadTrainingTrial();
+        }
+
+        function loadTrainingTrial() {
+            // Generate random training trial
+            const availableProbs = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0];
+            const [probA, probB] = [
+                availableProbs[Math.floor(Math.random() * availableProbs.length)],
+                availableProbs[Math.floor(Math.random() * availableProbs.length)]
+            ].filter((v, i, a) => a.indexOf(v) === i).slice(0, 2);
+
+            const trueUrn = Math.random() < 0.5 ? probA : probB;
+            const sampleSize = Math.floor(Math.random() * 6) + 5; // 5-10 balls
+            const sample = [];
+
+            for (let i = 0; i < sampleSize; i++) {
+                sample.push(Math.random() < trueUrn ? 'black' : 'white');
+            }
+
+            state.currentTrainingData = { probA, probB, trueUrn, sample };
+
+            // Display
+            document.getElementById('training-trial-num').textContent = state.trainingTrial;
+
+            const sampleDiv = document.getElementById('training-sample');
+            sampleDiv.innerHTML = sample.map(color =>
+                `<div class="ball ${color}"></div>`
+            ).join('');
+
+            const urnsDiv = document.getElementById('training-urns');
+            urnsDiv.innerHTML = `
+                <div class="urn">
+                    <h3>Urn A</h3>
+                    <p>${(probA * 100).toFixed(0)}% Black</p>
+                    <button onclick="selectUrn(${probA})">Select Urn A</button>
+                </div>
+                <div class="urn">
+                    <h3>Urn B</h3>
+                    <p>${(probB * 100).toFixed(0)}% Black</p>
+                    <button onclick="selectUrn(${probB})">Select Urn B</button>
+                </div>
+            `;
+
+            showScreen('training-trial');
+        }
+
+        async function selectUrn(selectedProb) {
+            const correct = selectedProb === state.currentTrainingData.trueUrn;
+            const result = correct ? 'correct' : 'incorrect';
+
+            // Submit training data
+            await fetch('/api/submit_training', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    participant_id: state.participantId,
+                    trial_num: state.trainingTrial,
+                    result: result
+                })
+            });
+
+            // Show feedback
+            const feedbackDiv = document.getElementById('feedback-message');
+            if (correct) {
+                feedbackDiv.className = 'feedback correct';
+                feedbackDiv.textContent = '✓ Correct!';
+            } else {
+                feedbackDiv.className = 'feedback incorrect';
+                const correctUrn = state.currentTrainingData.trueUrn === state.currentTrainingData.probA ? 'A' : 'B';
+                feedbackDiv.innerHTML = `✗ Incorrect<br>The correct answer was Urn ${correctUrn}`;
+            }
+
+            showScreen('training-feedback');
+        }
+
+        function nextTrainingTrial() {
+            state.trainingTrial++;
+            if (state.trainingTrial <= 10) {
+                loadTrainingTrial();
+            } else {
+                showScreen('main-instructions');
+            }
+        }
+
+        function startMainExperiment() {
+            state.currentStage = 'red_jar_stage1';
+            state.currentTrial = 0;
+            state.totalTrials = 40;
+            state.samples = [];
+            state.estimates = [];
+            state.confidences = [];
+
+            setupInitialEstimate('red', 'RED JAR');
+        }
+
+        function setupInitialEstimate(jarColor, jarLabel) {
+            const banner = document.getElementById('initial-jar-banner');
+            banner.className = `jar-banner ${jarColor}`;
+            banner.innerHTML = `<h2>${jarLabel}</h2>`;
+            showScreen('initial-estimate');
+        }
+
+        function submitInitialEstimate() {
+            const estimate = parseFloat(document.getElementById('initial-estimate-input').value);
+            if (isNaN(estimate) || estimate < 0 || estimate > 100) {
+                alert('Please enter a valid probability between 0 and 100');
+                return;
+            }
+
+            state.estimates.push(estimate);
+            document.getElementById('initial-estimate-input').value = '';
+
+            setupMainTrial();
+        }
+
+        function setupMainTrial() {
+            const jarColor = state.currentStage.includes('red') ? 'red' : 'green';
+            const jarLabel = jarColor === 'red' ? 'RED JAR' : 'GREEN JAR';
+
+            const banner = document.getElementById('jar-banner');
+            banner.className = `jar-banner ${jarColor}`;
+            banner.innerHTML = `<h2>${jarLabel} - Trial ${state.currentTrial + 1}/${state.totalTrials}</h2>`;
+
+            document.getElementById('trial-num').textContent = state.currentTrial + 1;
+            document.getElementById('total-trials').textContent = state.totalTrials;
+
+            updateSampleDisplay();
+
+            document.getElementById('draw-section').style.display = 'block';
+            document.getElementById('estimate-section').style.display = 'none';
+
+            // Clear inputs
+            document.getElementById('probability-estimate').value = '';
+            document.getElementById('confidence-rating').value = '';
+
+            showScreen('main-trial');
+        }
+
+        async function drawBall() {
+            playSound(440, 0.1); // Ping
+
+            const jarType = state.currentStage.includes('red') ? 'red' : 'green';
+
+            const response = await fetch('/api/draw_ball', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    participant_id: state.participantId,
+                    jar_type: jarType
+                })
+            });
+
+            const data = await response.json();
+            state.lastDrawnBall = data.ball_color;
+            state.samples.push(data.ball_color);
+
+            setTimeout(() => {
+                playSound(220, 0.15); // Thunk
+            }, 150);
+
+            updateSampleDisplay();
+
+            document.getElementById('draw-section').style.display = 'none';
+            document.getElementById('estimate-section').style.display = 'block';
+        }
+
+        function updateSampleDisplay() {
+            const sampleDiv = document.getElementById('sample-display');
+            sampleDiv.innerHTML = state.samples.map(color =>
+                `<div class="ball ${color}"></div>`
+            ).join('');
+
+            document.getElementById('sample-count').textContent = state.samples.length;
+
+            const blackCount = state.samples.filter(c => c === 'black').length;
+            const totalCount = state.samples.length;
+            const blackPercent = totalCount > 0 ? ((blackCount / totalCount) * 100).toFixed(1) : 0;
+
+            document.getElementById('black-count').textContent = blackCount;
+            document.getElementById('total-count').textContent = totalCount;
+            document.getElementById('black-percent').textContent = blackPercent;
+
+            // Show last responses
+            if (state.estimates.length > 0) {
+                document.getElementById('last-estimate').textContent =
+                    `Last estimate: ${state.estimates[state.estimates.length - 1].toFixed(1)}%`;
+            }
+            if (state.confidences.length > 0) {
+                document.getElementById('last-confidence').textContent =
+                    `Last confidence: ${state.confidences[state.confidences.length - 1].toFixed(1)}/10`;
+            }
+        }
+
+        async function submitTrial() {
+            const estimate = parseFloat(document.getElementById('probability-estimate').value);
+            const confidence = parseFloat(document.getElementById('confidence-rating').value);
+
+            if (isNaN(estimate) || estimate < 0 || estimate > 100) {
+                alert('Please enter a valid probability between 0 and 100');
+                return;
+            }
+
+            if (isNaN(confidence) || confidence < 0 || confidence > 10) {
+                alert('Please enter a valid confidence between 0 and 10');
+                return;
+            }
+
+            state.estimates.push(estimate);
+            state.confidences.push(confidence);
+
+            // Submit to server
+            await fetch('/api/submit_trial', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    participant_id: state.participantId,
+                    stage: state.currentStage,
+                    ball_color: state.lastDrawnBall,
+                    estimate: estimate,
+                    confidence: confidence
+                })
+            });
+
+            state.currentTrial++;
+
+            if (state.currentTrial < state.totalTrials) {
+                setupMainTrial();
+            } else {
+                // Stage complete
+                if (state.currentStage === 'red_jar_stage1') {
+                    showScreen('green-instructions');
+                } else if (state.currentStage === 'green_jar_stage2') {
+                    showScreen('return-red-instructions');
+                } else {
+                    finishExperiment();
+                }
+            }
+        }
+
+        async function startGreenJar() {
+            state.currentStage = 'green_jar_stage2';
+            state.currentTrial = 0;
+            state.totalTrials = 30;
+            state.samples = [];
+            state.estimates = [];
+            state.confidences = [];
+
+            setupInitialEstimate('green', 'GREEN JAR');
+        }
+
+        async function returnToRedJar() {
+            // Get previous red jar data
+            const response = await fetch('/api/get_stage_data', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    participant_id: state.participantId,
+                    stage: 'red_jar_stage1'
+                })
+            });
+
+            const data = await response.json();
+
+            state.currentStage = 'red_jar_stage3';
+            state.currentTrial = 0;
+            state.totalTrials = 30;
+            state.samples = data.samples;
+            state.estimates = data.estimates;
+            state.confidences = data.confidences;
+
+            setupMainTrial();
+        }
+
+        async function finishExperiment() {
+            // Export data
+            await fetch('/api/export_data', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    participant_id: state.participantId
+                })
+            });
+
+            showScreen('thank-you');
+        }
+    </script>
+</body>
+</html>
