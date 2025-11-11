@@ -317,6 +317,40 @@
             margin-top: 10px;
         }
 
+        /* Urn Stimuli Display */
+        .urn-stimuli-container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin: 40px 0;
+            padding: 20px;
+        }
+
+        .urn-stimuli-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .urn-visual {
+            font-size: 60px;
+            color: #b0b0b0;
+            filter: grayscale(100%);
+        }
+
+        .urn-label {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            background-color: #f0f0f0;
+            padding: 8px 16px;
+            border-radius: 5px;
+            border: 2px solid #ddd;
+        }
+
         @media (max-width: 768px) {
             .container {
                 padding: 20px;
@@ -414,7 +448,64 @@
                 <p>You will complete 10 practice trials.</p>
             </div>
             <div class="center">
-                <button onclick="startTraining()">Begin Training</button>
+                <button onclick="showUrnStimuli()">Begin Training</button>
+            </div>
+        </div>
+
+        <!-- Urn Stimuli Display -->
+        <div id="urn-stimuli" class="screen">
+            <h1>Urn Stimuli</h1>
+            <div class="instructions center">
+                <p><strong>The upcoming samples that you will see can be from any of these urns</strong></p>
+            </div>
+            <div class="urn-stimuli-container">
+                <div class="urn-stimuli-item">
+                    <div class="urn-visual">🏺</div>
+                    <div class="urn-label">00</div>
+                </div>
+                <div class="urn-stimuli-item">
+                    <div class="urn-visual">🏺</div>
+                    <div class="urn-label">10</div>
+                </div>
+                <div class="urn-stimuli-item">
+                    <div class="urn-visual">🏺</div>
+                    <div class="urn-label">20</div>
+                </div>
+                <div class="urn-stimuli-item">
+                    <div class="urn-visual">🏺</div>
+                    <div class="urn-label">30</div>
+                </div>
+                <div class="urn-stimuli-item">
+                    <div class="urn-visual">🏺</div>
+                    <div class="urn-label">40</div>
+                </div>
+                <div class="urn-stimuli-item">
+                    <div class="urn-visual">🏺</div>
+                    <div class="urn-label">50</div>
+                </div>
+                <div class="urn-stimuli-item">
+                    <div class="urn-visual">🏺</div>
+                    <div class="urn-label">60</div>
+                </div>
+                <div class="urn-stimuli-item">
+                    <div class="urn-visual">🏺</div>
+                    <div class="urn-label">70</div>
+                </div>
+                <div class="urn-stimuli-item">
+                    <div class="urn-visual">🏺</div>
+                    <div class="urn-label">80</div>
+                </div>
+                <div class="urn-stimuli-item">
+                    <div class="urn-visual">🏺</div>
+                    <div class="urn-label">90</div>
+                </div>
+                <div class="urn-stimuli-item">
+                    <div class="urn-visual">🏺</div>
+                    <div class="urn-label">100</div>
+                </div>
+            </div>
+            <div class="center" style="margin-top: 30px;">
+                <button onclick="startTraining()">Continue to Training Trials</button>
             </div>
         </div>
 
@@ -658,6 +749,10 @@
 
         function declineConsent() {
             alert('Thank you for your time. You may close this window.');
+        }
+
+        function showUrnStimuli() {
+            showScreen('urn-stimuli');
         }
 
         function startTraining() {
