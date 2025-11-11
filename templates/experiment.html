@@ -552,6 +552,7 @@
             </div>
             <div class="center" style="margin-top: 30px;">
                 <button onclick="startTraining()">Continue to Training Trials</button>
+                <button onclick="showScreen('main-instructions')" class="blue" style="margin-left: 10px;">Skip Training</button>
             </div>
         </div>
 
@@ -619,6 +620,7 @@
             </div>
             <div class="center" style="margin-top: 30px;">
                 <button onclick="startMainExperiment()">Begin RED JAR</button>
+                <button onclick="showScreen('green-instructions')" class="blue" style="margin-left: 10px;">Skip RED JAR</button>
             </div>
         </div>
 
@@ -704,6 +706,7 @@
             </div>
             <div class="center">
                 <button onclick="startGreenJar()">Begin GREEN JAR</button>
+                <button onclick="showScreen('return-red-instructions')" class="blue" style="margin-left: 10px;">Skip GREEN JAR</button>
             </div>
         </div>
 
@@ -722,6 +725,7 @@
             </div>
             <div class="center">
                 <button onclick="returnToRedJar()">Continue RED JAR</button>
+                <button onclick="skipToEnd()" class="blue" style="margin-left: 10px;">Skip to End</button>
             </div>
         </div>
 
@@ -924,6 +928,11 @@
             } else {
                 showScreen('main-instructions');
             }
+        }
+
+        // Skip function for testing
+        function skipToEnd() {
+            showScreen('thank-you');
         }
 
         function startMainExperiment() {
